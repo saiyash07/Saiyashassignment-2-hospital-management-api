@@ -1,0 +1,156 @@
+@baseUrl = http://localhost:4000
+
+# After creating a hospital, copy its MongoDB _id here
+@hospitalId =6a809c0f62c1942004066f8d
+
+
+### welcome route
+GET {{baseUrl}}/
+
+
+### register — happy path
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "saiyash_test",
+  "email": "saiyash.test@example.com",
+  "password": "Test@12345"
+}
+
+
+### register — duplicate username, expect 400
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "saiyash_test",
+  "email": "different@example.com",
+  "password": "Test@12345"
+}
+
+
+### register — missing password, expect 400
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "saiyash_nopass",
+  "email": "saiyash.nopass@example.com"
+}
+
+
+### login — happy path, expect 200
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "saiyash_test",
+  "password": "Test@12345"
+}
+
+
+### login — wrong password, expect 401
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "saiyash_test",
+  "password": "Wrong@12345"
+}
+
+
+### login — unknown user, expect 401
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "unknown_user",
+  "password": "Test@12345"
+}
+
+
+### login — no password, expect 401
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "saiyash_test"
+}
+
+
+### create hospital — expect 201
+### Copy the returned _id into @hospitalId above
+POST {{baseUrl}}/hospitals
+Content-Type: application/json
+
+{
+  "name": "Saiyash Care",
+  "city": "Mumbai",
+  "totalBeds": 100,
+  "availableBeds": 12
+}
+
+
+### create hospital — zero free beds, for the /available test
+POST {{baseUrl}}/hospitals
+Content-Type: application/json
+
+{
+  "name": "Metro Health",
+  "city": "Pune",
+  "totalBeds": 50,
+  "availableBeds": 0
+}
+
+
+### create hospital — missing city, expect 400
+POST {{baseUrl}}/hospitals
+Content-Type: application/json
+
+{
+  "name": "Test Hospital",
+  "totalBeds": 10,
+  "availableBeds": 5
+}
+
+
+### all hospitals, expect 200
+GET {{baseUrl}}/hospitals
+
+
+### only hospitals with free beds
+### Metro Health must NOT appear
+GET {{baseUrl}}/hospitals/available
+
+
+### hospital by id, expect 200
+GET {{baseUrl}}/hospitals/{{hospitalId}}
+
+
+### valid ObjectId but no such document, expect 404
+GET {{baseUrl}}/hospitals/507f1f77bcf86cd799439011
+
+
+### garbage id — CastError case
+GET {{baseUrl}}/hospitals/notarealid
+
+
+### update hospital, expect 200 with new values
+PUT {{baseUrl}}/hospitals/{{hospitalId}}
+Content-Type: application/json
+
+{
+  "name": "Saiyash Care",
+  "city": "Mumbai",
+  "totalBeds": 120,
+  "availableBeds": 30
+}
+
+
+### delete hospital, expect 200
+DELETE {{baseUrl}}/hospitals/{{hospitalId}}
+
+
+### delete same id again, expect 404
+DELETE {{baseUrl}}/hospitals/{{hospitalId}}
